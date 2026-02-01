@@ -1,6 +1,6 @@
 # Sistema de Cinema - API
 
-Sistema de gerenciamento de cinema com Express.js, MongoDB e Docker.
+Sistema de gerenciamento de cinema com Express.js, MongoDB, Redis e Docker.
 
 ![system-diagram](/system-design.png)
 
@@ -21,6 +21,8 @@ docker-compose up -d
 A API estará disponível em: `http://localhost:3000`
 
 MongoDB estará em: `localhost:27017`
+
+Redis estará em: `localhost:6379`
 
 3. Para parar os containers:
 ```bash
@@ -44,8 +46,8 @@ npm start
 ## Endpoints da API
 
 ### Filmes (Admin)
-- `GET /admin/movies` - Listar todos os filmes
-- `GET /admin/movies/:id` - Detalhes de um filme
+- `GET /admin/movies` - Listar todos os filmes **(cache: 120s)**
+- `GET /admin/movies/:id` - Detalhes de um filme **(cache: 60s)**
 - `POST /admin/movies` - Criar novo filme
 - `PATCH /admin/movies/:id` - Atualizar filme
 - `DELETE /admin/movies/:id` - Deletar filme
@@ -57,7 +59,7 @@ npm start
 
 ### Sessões
 - `POST /sessions` - Criar nova sessão
-- `GET /sessions` - Listar sessões (com filtro por data)
+- `GET /sessions` - Listar sessões (com filtro por data) **(cache: 60s)**
 - `GET /sessions/:session_id/seats` - Ver assentos disponíveis
 - `PATCH /sessions/:id` - Atualizar sessão
 - `DELETE /sessions/:id` - Deletar sessão
@@ -77,6 +79,10 @@ npm start
 ```
 cinema/
 ├── src/
+│   ├── config/          # Configurações
+│   │   └── redis.js
+│   ├── middleware/      # Middlewares
+│   │   └── cache.js
 │   ├── models/          # Modelos do MongoDB
 │   │   ├── Movie.js
 │   │   ├── Room.js
@@ -102,6 +108,23 @@ cinema/
 - Usuário: `admin`
 - Senha: `senha123`
 - Database: `cinema`
+
+## Sistema de Cache (Redis)
+
+O sistema utiliza Redis para cachear rotas GET e melhorar a performance:
+
+- **GET /admin/movies**: Cache de 30 segundos
+- **GET /sessions?date=...**: Cache de 60 segundos
+
+**Configuração do Redis:**
+- Porta: `6379`
+- Memória máxima: 256MB
+- Política de remoção: LRU (Least Recently Used)
+
+**Comportamento:**
+- Logs de HIT/MISS aparecem no console
+- Se Redis cair, a aplicação continua funcionando sem cache
+- Reconexão automática em caso de falha
 
 ## Exemplo de uso
 

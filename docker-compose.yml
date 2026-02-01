@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: cinema-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: senha123
+      MONGO_INITDB_DATABASE: cinema
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - cinema-network
+
+  api:
+    build: .
+    container_name: cinema-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:senha123@mongodb:27017/cinema?authSource=admin
+      - PORT=3000
+    depends_on:
+      - mongodb
+    networks:
+      - cinema-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
+
+networks:
+  cinema-network:
+    driver: bridge

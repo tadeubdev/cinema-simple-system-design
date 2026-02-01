@@ -1,0 +1,69 @@
+erDiagram
+    MOVIE ||--o{ SESSION : has
+    ROOM  ||--o{ SEAT    : contains
+    ROOM  ||--o{ SESSION : hosts
+    CLIENT ||--o{ "ORDER" : places
+    "ORDER" ||--o{ TICKET : contains
+    SESSION ||--o{ TICKET : sold_for
+    SEAT ||--o{ TICKET : reserved_as
+
+    MOVIE {
+      bigint id PK
+      varchar title
+      text description
+      int duration_min
+      date date_start
+      date date_end
+      timestamp created_at
+      timestamp updated_at
+    }
+
+    ROOM {
+      bigint id PK
+      varchar name
+      boolean active
+      timestamp created_at
+      timestamp updated_at
+    }
+
+    SESSION {
+      bigint id PK
+      bigint movie_id FK
+      bigint room_id FK
+      datetime start_at
+      datetime finish_at
+      timestamp created_at
+      timestamp updated_at
+    }
+
+    SEAT {
+      bigint id PK
+      bigint room_id FK
+      boolean active
+      timestamp created_at
+      timestamp updated_at
+    }
+
+    CLIENT {
+      bigint id PK
+      varchar name
+      timestamp created_at
+      timestamp updated_at
+    }
+
+    "ORDER" {
+      bigint id PK
+      bigint client_id FK
+      varchar status  "pending|paid|canceled"
+      timestamp created_at
+      timestamp updated_at
+    }
+
+    TICKET {
+      bigint id PK
+      bigint order_id FK
+      bigint session_id FK
+      bigint seat_id FK
+      timestamp created_at
+      timestamp updated_at
+    }

@@ -2,6 +2,8 @@
 
 Sistema de gerenciamento de cinema com Express.js, MongoDB e Docker.
 
+![system-diagram](/system-design.png)
+
 ## Como rodar o projeto
 
 ### Usando Docker (recomendado)

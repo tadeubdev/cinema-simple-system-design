@@ -1,0 +1,288 @@
+_type: export
+__export_format: 4
+__export_date: 2026-02-01T00:00:00.000Z
+__export_source: insomnia.desktop.app:v12.3.0
+resources:
+  - _id: req_movies_list
+    _type: request
+    parentId: wrk_cinema
+    name: Movies - List All
+    method: GET
+    url: "{{ _.baseUrl }}/admin/movies"
+    description: Listar todos os filmes
+    headers: []
+  - _id: req_movies_get
+    _type: request
+    parentId: wrk_cinema
+    name: Movies - Get Details
+    method: GET
+    url: "{{ _.baseUrl }}/admin/movies/{{ _.movie_id }}"
+    description: Obter detalhes de um filme específico
+    headers: []
+  - _id: req_movies_create
+    _type: request
+    parentId: wrk_cinema
+    name: Movies - Create
+    method: POST
+    url: "{{ _.baseUrl }}/admin/movies"
+    description: Criar novo filme
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "title": "Avatar: O Caminho da Água",
+          "description": "Jake Sully e Neytiri formaram uma família e estão fazendo de tudo para ficarem juntos.",
+          "duration_min": 192,
+          "date_start": "2026-02-01",
+          "date_end": "2026-03-31"
+        }
+  - _id: req_movies_update
+    _type: request
+    parentId: wrk_cinema
+    name: Movies - Update
+    method: PATCH
+    url: "{{ _.baseUrl }}/admin/movies/{{ _.movie_id }}"
+    description: Atualizar dados de um filme
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "title": "Avatar: O Caminho da Água (IMAX)",
+          "duration_min": 195
+        }
+  - _id: req_movies_delete
+    _type: request
+    parentId: wrk_cinema
+    name: Movies - Delete
+    method: DELETE
+    url: "{{ _.baseUrl }}/admin/movies/{{ _.movie_id }}"
+    description: Deletar um filme
+    headers: []
+  - _id: req_rooms_list
+    _type: request
+    parentId: wrk_cinema
+    name: Rooms - List All
+    method: GET
+    url: "{{ _.baseUrl }}/admin/rooms"
+    description: Listar todas as salas
+    headers: []
+  - _id: req_rooms_create
+    _type: request
+    parentId: wrk_cinema
+    name: Rooms - Create
+    method: POST
+    url: "{{ _.baseUrl }}/admin/rooms"
+    description: Criar nova sala
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "name": "Sala 1",
+          "active": true
+        }
+  - _id: req_rooms_add_seats
+    _type: request
+    parentId: wrk_cinema
+    name: Rooms - Add Seats
+    method: POST
+    url: "{{ _.baseUrl }}/admin/rooms/{{ _.room_id }}/seats"
+    description: Adicionar assentos à sala
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "quantity": 50
+        }
+  - _id: req_sessions_list
+    _type: request
+    parentId: wrk_cinema
+    name: Sessions - List All
+    method: GET
+    url: "{{ _.baseUrl }}/sessions"
+    description: Listar todas as sessões
+    headers: []
+  - _id: req_sessions_list_filtered
+    _type: request
+    parentId: wrk_cinema
+    name: Sessions - List by Date Range
+    method: GET
+    url: "{{ _.baseUrl }}/sessions?date_start=2026-02-01&date_end=2026-02-28"
+    description: Listar sessões filtradas por data
+    headers: []
+  - _id: req_sessions_create
+    _type: request
+    parentId: wrk_cinema
+    name: Sessions - Create
+    method: POST
+    url: "{{ _.baseUrl }}/sessions"
+    description: Criar nova sessão
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "movie_id": "{{ _.movie_id }}",
+          "room_id": "{{ _.room_id }}",
+          "start_at": "2026-02-15T19:00:00",
+          "finish_at": "2026-02-15T21:00:00"
+        }
+  - _id: req_sessions_seats
+    _type: request
+    parentId: wrk_cinema
+    name: Sessions - Get Available Seats
+    method: GET
+    url: "{{ _.baseUrl }}/sessions/{{ _.session_id }}/seats"
+    description: Ver assentos disponíveis para uma sessão
+    headers: []
+  - _id: req_sessions_update
+    _type: request
+    parentId: wrk_cinema
+    name: Sessions - Update
+    method: PATCH
+    url: "{{ _.baseUrl }}/sessions/{{ _.session_id }}"
+    description: Atualizar dados de uma sessão
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "start_at": "2026-02-15T20:00:00",
+          "finish_at": "2026-02-15T22:00:00"
+        }
+  - _id: req_sessions_delete
+    _type: request
+    parentId: wrk_cinema
+    name: Sessions - Delete
+    method: DELETE
+    url: "{{ _.baseUrl }}/sessions/{{ _.session_id }}"
+    description: Deletar uma sessão
+    headers: []
+  - _id: req_clients_list
+    _type: request
+    parentId: wrk_cinema
+    name: Clients - List All
+    method: GET
+    url: "{{ _.baseUrl }}/clients"
+    description: Listar todos os clientes
+    headers: []
+  - _id: req_clients_create
+    _type: request
+    parentId: wrk_cinema
+    name: Clients - Create
+    method: POST
+    url: "{{ _.baseUrl }}/clients"
+    description: Criar novo cliente
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "name": "João Silva"
+        }
+  - _id: req_orders_get
+    _type: request
+    parentId: wrk_cinema
+    name: Orders - Get Details
+    method: GET
+    url: "{{ _.baseUrl }}/orders/{{ _.order_id }}"
+    description: Ver detalhes de um pedido
+    headers: []
+  - _id: req_orders_create
+    _type: request
+    parentId: wrk_cinema
+    name: Orders - Create
+    method: POST
+    url: "{{ _.baseUrl }}/orders"
+    description: Criar novo pedido (abrir ordem)
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "client_id": "{{ _.client_id }}"
+        }
+  - _id: req_orders_add_ticket
+    _type: request
+    parentId: wrk_cinema
+    name: Orders - Add Ticket
+    method: POST
+    url: "{{ _.baseUrl }}/orders/{{ _.order_id }}/tickets"
+    description: Adicionar ingresso ao pedido
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "session_id": "{{ _.session_id }}",
+          "seat_id": "{{ _.seat_id }}"
+        }
+  - _id: req_orders_pay
+    _type: request
+    parentId: wrk_cinema
+    name: Orders - Pay
+    method: PATCH
+    url: "{{ _.baseUrl }}/orders/{{ _.order_id }}"
+    description: Marcar pedido como pago
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "status": "paid"
+        }
+  - _id: req_orders_cancel
+    _type: request
+    parentId: wrk_cinema
+    name: Orders - Cancel
+    method: PATCH
+    url: "{{ _.baseUrl }}/orders/{{ _.order_id }}"
+    description: Cancelar pedido
+    headers:
+      - name: Content-Type
+        value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "status": "canceled"
+        }
+  - _id: wrk_cinema
+    _type: workspace
+    name: Cinema API
+    description: API de Cinema - Sistema de Ingressos
+  - _id: env_cinema
+    _type: environment
+    name: Base Environment
+    data:
+      baseUrl: http://localhost:3000
+      movie_id: ""
+      room_id: ""
+      session_id: ""
+      client_id: ""
+      order_id: ""
+      seat_id: ""
+    parentId: wrk_cinema

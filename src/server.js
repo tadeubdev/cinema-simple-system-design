@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const { connectRedis } = require('./config/redis');
 
 const app = express();
 
@@ -14,6 +15,9 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cinema
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Conectado ao MongoDB'))
   .catch(err => console.error('❌ Erro ao conectar ao MongoDB:', err));
+
+// Conexão com Redis
+connectRedis();
 
 // Importar rotas
 const moviesRoutes = require('./routes/movies');

@@ -3,6 +3,7 @@ const router = express.Router();
 const Session = require('../models/Session');
 const Seat = require('../models/Seat');
 const Ticket = require('../models/Ticket');
+const cacheMiddleware = require('../middleware/cache');
 
 // GET /admin/movies/:movie_id/sessions - Criar sessão para um filme
 router.post('/', async (req, res) => {
@@ -15,8 +16,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /movies/:movie_id/sessions - Listar sessões de um filme
-router.get('/', async (req, res) => {
+// GET /movies/:movie_id/sessions - Listar sessões de um filme (com cache de 60s)
+router.get('/', cacheMiddleware(60), async (req, res) => {
   try {
     const { date_start, date_end } = req.query;
     const query = {};

@@ -16,6 +16,16 @@ services:
     networks:
       - cinema-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: cinema-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - cinema-network
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
   api:
     build: .
     container_name: cinema-api
@@ -25,9 +35,11 @@ services:
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://admin:senha123@mongodb:27017/cinema?authSource=admin
+      - REDIS_URL=redis://redis:6379
       - PORT=3000
     depends_on:
       - mongodb
+      - redis
     networks:
       - cinema-network
     volumes:

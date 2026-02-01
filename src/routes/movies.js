@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Movie = require('../models/Movie');
+const cacheMiddleware = require('../middleware/cache');
 
-// GET /admin/movies - Listar todos os filmes
-router.get('/', async (req, res) => {
+// GET /admin/movies - Listar todos os filmes (com cache de 120s)
+router.get('/', cacheMiddleware(120), async (req, res) => {
   try {
     const movies = await Movie.find();
     res.json(movies);
@@ -12,8 +13,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /admin/movies/:id - Obter detalhes de um filme
-router.get('/:id', async (req, res) => {
+// GET /admin/movies/:id - Obter detalhes de um filme (com cache de 60s)
+router.get('/:id', cacheMiddleware(60), async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);
     if (!movie) {

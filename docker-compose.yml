@@ -26,9 +26,9 @@ services:
       - cinema-network
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
 
-  api:
-    build: .
-    container_name: cinema-api
+  express-api:
+    build: ./express
+    container_name: cinema-express-api
     restart: always
     ports:
       - "3000:3000"
@@ -43,7 +43,27 @@ services:
     networks:
       - cinema-network
     volumes:
-      - .:/app
+      - ./express:/app
+      - /app/node_modules
+
+  nest-api:
+    build: ./nest
+    container_name: cinema-nest-api
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:senha123@mongodb:27017/cinema?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - PORT=3001
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - cinema-network
+    volumes:
+      - ./nest:/app
       - /app/node_modules
 
 volumes:

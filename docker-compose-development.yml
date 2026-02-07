@@ -1,0 +1,74 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: cinema-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: senha123
+      MONGO_INITDB_DATABASE: cinema
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - cinema-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cinema-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - cinema-network
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  express-api:
+    build: ./express
+    container_name: cinema-express-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:senha123@mongodb:27017/cinema?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - PORT=3000
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - cinema-network
+    volumes:
+      - ./express:/app
+      - /app/node_modules
+
+  nest-api:
+    build:
+      context: ./nest
+      dockerfile: Dockerfile.local
+    container_name: cinema-nest-api
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:senha123@mongodb:27017/cinema?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - PORT=3001
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - cinema-network
+    volumes:
+      - ./nest:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
+
+networks:
+  cinema-network:
+    driver: bridge

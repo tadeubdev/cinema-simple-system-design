@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { CacheService } from 'src/infra/cache/cache.service';
@@ -76,6 +80,9 @@ export class MoviesService {
       return cached as Movie;
     }
     const movie = await this.repository.findOneBy({ id });
+    if (!movie) {
+      throw new NotFoundException('Movie not found');
+    }
     if (movie) {
       await this.cache.set(cacheKey, movie);
     }
@@ -92,7 +99,9 @@ export class MoviesService {
       },
     });
     if (existingMovie) {
-      return existingMovie;
+      throw new ConflictException(
+        'Movie with same title and date range already exists',
+      );
     }
     const movie = this.repository.create({
       ...movieDto,
@@ -114,7 +123,7 @@ export class MoviesService {
   async update(id: string, movie: UpdateMovieDto): Promise<Movie | null> {
     const movieExists = await this.repository.exist({ where: { id } });
     if (!movieExists) {
-      return null;
+      throw new NotFoundException('Movie not found');
     }
     await this.repository.update(id, movie);
     const updatedMovie = await this.repository.findOneBy({ id });
@@ -129,7 +138,7 @@ export class MoviesService {
   async delete(id: string): Promise<boolean> {
     const movieExists = await this.repository.exists({ where: { id } });
     if (!movieExists) {
-      return false;
+      throw new NotFoundException('Movie not found');
     }
     await this.repository.delete(id);
     await this.cache.delByPrefix('movies:list:');

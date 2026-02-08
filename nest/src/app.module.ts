@@ -6,6 +6,8 @@ import { CacheModule } from './infra/cache/cache.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { v4 as uuidv4 } from 'uuid';
 import { ClsModule } from 'nestjs-cls';
+import { RoomsModule } from './rooms/rooms.module';
+import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { ClsModule } from 'nestjs-cls';
     DatabaseModule,
     CacheModule,
     MoviesModule,
+    RoomsModule,
+    SessionsModule,
   ],
   controllers: [AppController],
   providers: [],

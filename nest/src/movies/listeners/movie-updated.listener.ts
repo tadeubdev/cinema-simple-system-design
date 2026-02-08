@@ -6,6 +6,7 @@ import { MovieUpdatedEvent } from '../events/movie-updated.event';
 export class MovieUpdatedListener {
   @OnEvent('movie.updated')
   handle(event: MovieUpdatedEvent) {
-    console.log('Movie updated:', event.movieId);
+    const requestId = event.requestId || 'N/A';
+    console.log(`[${requestId}] Movie updated: ${event.movieId}`);
   }
 }

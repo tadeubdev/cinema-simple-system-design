@@ -1,4 +1,4 @@
-import { hashObjectWithPrefix } from "src/shared/hash-object";
+import { hashObjectWithPrefix } from 'src/common/hash-object';
 
 export interface AllMoviesQueryDto {
   search?: string;

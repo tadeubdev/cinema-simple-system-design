@@ -6,6 +6,7 @@ import { MovieCreatedEvent } from '../events/movie-created.event';
 export class MovieCreatedListener {
   @OnEvent('movie.created')
   handle(event: MovieCreatedEvent) {
-    console.log('Movie created:', event.movieId);
+    const requestId = event.requestId || 'N/A';
+    console.log(`[${requestId}] Movie created: ${event.movieId}`);
   }
 }

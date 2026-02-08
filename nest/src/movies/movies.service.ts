@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -12,6 +11,7 @@ import {
 } from './dto/all-movies-query.dto';
 import { MovieUpdatedEvent } from './events/movie-updated.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class MoviesService {
@@ -20,6 +20,7 @@ export class MoviesService {
     private movieModel: Model<Movie>,
     private readonly cache: CacheService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly cls: ClsService,
   ) {}
 
   async findAll(query: AllMoviesQueryDto): Promise<Movie[]> {
@@ -84,7 +85,7 @@ export class MoviesService {
     await this.cache.delByPrefix('movies:list:');
     this.eventEmitter.emit(
       'movie.updated',
-      new MovieUpdatedEvent(movie._id.toString()),
+      new MovieUpdatedEvent(movie._id.toString(), this.cls.get('requestId')),
     );
     return movie;
   }
@@ -98,7 +99,10 @@ export class MoviesService {
       .findByIdAndUpdate(id, movie, { new: true })
       .exec();
     await this.cache.delByPrefix('movies:list:');
-    this.eventEmitter.emit('movie.updated', new MovieUpdatedEvent(id));
+    this.eventEmitter.emit(
+      'movie.updated',
+      new MovieUpdatedEvent(id, this.cls.get('requestId')),
+    );
     return updatedMovie;
   }
 }

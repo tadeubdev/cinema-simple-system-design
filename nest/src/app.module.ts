@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { ClsModule } from 'nestjs-cls';
 import { RoomsModule } from './rooms/rooms.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { OrdersModule } from './orders/orders.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { SessionsModule } from './sessions/sessions.module';
     MoviesModule,
     RoomsModule,
     SessionsModule,
+    OrdersModule,
+    TicketsModule,
   ],
   controllers: [AppController],
   providers: [],

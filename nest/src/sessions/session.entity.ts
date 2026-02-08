@@ -21,7 +21,10 @@ export class Session {
   room: Room;
 
   @Column()
-  startsAt: Date;
+  dateStart: Date;
+
+  @Column()
+  dateEnd: Date;
 
   @OneToMany(() => SessionSeat, (ss) => ss.session, { cascade: true })
   seats: SessionSeat[];

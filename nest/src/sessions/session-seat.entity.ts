@@ -14,11 +14,11 @@ export class SessionSeat {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Session, (session) => session.seats, { onDelete: 'CASCADE' })
-  session: Session;
+  @Column()
+  sessionId: string;
 
-  @ManyToOne(() => Seat, { onDelete: 'CASCADE' })
-  seat: Seat;
+  @Column()
+  seatId: string;
 
   @Column({
     type: 'enum',
@@ -26,4 +26,10 @@ export class SessionSeat {
     default: 'AVAILABLE',
   })
   status: 'AVAILABLE' | 'RESERVED' | 'SOLD';
+
+  @ManyToOne(() => Session, (session) => session.seats, { onDelete: 'CASCADE' })
+  session: Session;
+
+  @ManyToOne(() => Seat, { onDelete: 'CASCADE' })
+  seat: Seat;
 }

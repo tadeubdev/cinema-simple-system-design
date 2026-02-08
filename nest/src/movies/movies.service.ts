@@ -10,6 +10,8 @@ import {
   AllMoviesQueryDto,
   buildMoviesListCacheKey,
 } from './dto/all-movies-query.dto';
+import { MovieUpdatedEvent } from './events/movie-updated.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class MoviesService {
@@ -17,6 +19,7 @@ export class MoviesService {
     @InjectModel(Movie.name)
     private movieModel: Model<Movie>,
     private readonly cache: CacheService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async findAll(query: AllMoviesQueryDto): Promise<Movie[]> {
@@ -79,6 +82,10 @@ export class MoviesService {
     const createdMovie = new this.movieModel(movieDto);
     const movie = await createdMovie.save();
     await this.cache.delByPrefix('movies:list:');
+    this.eventEmitter.emit(
+      'movie.updated',
+      new MovieUpdatedEvent(movie._id.toString()),
+    );
     return movie;
   }
 
@@ -91,6 +98,7 @@ export class MoviesService {
       .findByIdAndUpdate(id, movie, { new: true })
       .exec();
     await this.cache.delByPrefix('movies:list:');
+    this.eventEmitter.emit('movie.updated', new MovieUpdatedEvent(id));
     return updatedMovie;
   }
 }

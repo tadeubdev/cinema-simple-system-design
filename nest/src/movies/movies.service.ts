@@ -1,7 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Movie } from './schemas/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { CacheService } from 'src/infra/cache/cache.service';
@@ -12,12 +9,17 @@ import {
 import { MovieUpdatedEvent } from './events/movie-updated.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ClsService } from 'nestjs-cls';
+import { Repository } from 'typeorm/repository/Repository';
+import { Movie } from './movie.entity';
+import { InjectRepository } from '@nestjs/typeorm/dist/common/typeorm.decorators';
+import { MovieDeletedEvent } from './events/movie-deleted.event';
+import { MovieCreatedEvent } from './events/movie-created.event';
 
 @Injectable()
 export class MoviesService {
   constructor(
-    @InjectModel(Movie.name)
-    private movieModel: Model<Movie>,
+    @InjectRepository(Movie)
+    private readonly repository: Repository<Movie>,
     private readonly cache: CacheService,
     private readonly eventEmitter: EventEmitter2,
     private readonly cls: ClsService,
@@ -43,25 +45,26 @@ export class MoviesService {
       return cached as Movie[];
     }
 
-    let stmt = this.movieModel.find();
+    let stmt = this.repository.createQueryBuilder('movie');
 
     if (query.search) {
-      const searchRegex = new RegExp(query.search, 'i');
-      stmt = stmt.or([{ title: searchRegex }, { description: searchRegex }]);
+      stmt = stmt.where('movie.title ILIKE :search', {
+        search: `%${query.search}%`,
+      });
     }
 
     if (Object.keys(dateFilter).length > 0) {
-      stmt = stmt
-        .where('releaseDate')
-        .gte(dateFilter.$gte?.getTime())
-        .lte(dateFilter.$lte?.getTime());
+      stmt = stmt.andWhere('movie.releaseDate BETWEEN :start AND :end', {
+        start: dateFilter.$gte || new Date(0),
+        end: dateFilter.$lte || new Date(),
+      });
     }
 
     const result = await stmt
-      .sort({ createdAt: -1 })
+      .orderBy('movie.createdAt', 'DESC')
       .skip(skip)
-      .limit(query.limit)
-      .exec();
+      .take(query.limit)
+      .getMany();
     await this.cache.set(cacheKey, result);
     return result;
   }
@@ -72,7 +75,7 @@ export class MoviesService {
     if (cached) {
       return cached as Movie;
     }
-    const movie = await this.movieModel.findById(id).exec();
+    const movie = await this.repository.findOneBy({ id });
     if (movie) {
       await this.cache.set(cacheKey, movie);
     }
@@ -80,29 +83,60 @@ export class MoviesService {
   }
 
   async create(movieDto: CreateMovieDto): Promise<Movie> {
-    const createdMovie = new this.movieModel(movieDto);
-    const movie = await createdMovie.save();
+    // check if movie with same title and dateStart and dateEnd already exists
+    const existingMovie = await this.repository.findOne({
+      where: {
+        title: movieDto.title,
+        dateStart: new Date(movieDto.dateStart),
+        dateEnd: new Date(movieDto.dateEnd),
+      },
+    });
+    if (existingMovie) {
+      return existingMovie;
+    }
+    const movie = this.repository.create({
+      ...movieDto,
+      dateStart: new Date(movieDto.dateStart),
+      dateEnd: new Date(movieDto.dateEnd),
+    });
+    const savedMovie = await this.repository.save(movie);
     await this.cache.delByPrefix('movies:list:');
     this.eventEmitter.emit(
-      'movie.updated',
-      new MovieUpdatedEvent(movie._id.toString(), this.cls.get('requestId')),
+      'movie.created',
+      new MovieCreatedEvent(
+        savedMovie.id.toString(),
+        this.cls.get('requestId'),
+      ),
     );
     return movie;
   }
 
   async update(id: string, movie: UpdateMovieDto): Promise<Movie | null> {
-    const movieExists = await this.movieModel.exists({ _id: id }).exec();
+    const movieExists = await this.repository.exist({ where: { id } });
     if (!movieExists) {
       return null;
     }
-    const updatedMovie = await this.movieModel
-      .findByIdAndUpdate(id, movie, { new: true })
-      .exec();
+    await this.repository.update(id, movie);
+    const updatedMovie = await this.repository.findOneBy({ id });
     await this.cache.delByPrefix('movies:list:');
     this.eventEmitter.emit(
       'movie.updated',
       new MovieUpdatedEvent(id, this.cls.get('requestId')),
     );
     return updatedMovie;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const movieExists = await this.repository.exists({ where: { id } });
+    if (!movieExists) {
+      return false;
+    }
+    await this.repository.delete(id);
+    await this.cache.delByPrefix('movies:list:');
+    this.eventEmitter.emit(
+      'movie.deleted',
+      new MovieDeletedEvent(id, this.cls.get('requestId')),
+    );
+    return true;
   }
 }

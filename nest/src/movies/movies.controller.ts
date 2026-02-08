@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -50,5 +50,20 @@ export class MoviesController {
       };
     }
     return updatedMovie;
+  }
+
+  @Delete('/:id')
+  async delete(@Param('id') id: string) {
+    const deleted = await this.moviesService.delete(id);
+    if (!deleted) {
+      return {
+        statusCode: 400,
+        message: 'Error deleting movie',
+      };
+    }
+    return {
+      statusCode: 200,
+      message: 'Movie deleted successfully',
+    };
   }
 }

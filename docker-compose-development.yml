@@ -14,6 +14,21 @@ services:
     networks:
       - cinema-network
 
+  postgres:
+    image: postgres:16
+    container_name: cinema-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cinema
+      POSTGRES_USER: cinema
+      POSTGRES_PASSWORD: cinema
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cinema-network
+
   redis:
     image: redis:7-alpine
     container_name: cinema-redis
@@ -54,11 +69,16 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:senha123@mongodb:27017/cinema?authSource=admin
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=cinema
+      - DB_PASSWORD=cinema
+      - DB_NAME=cinema
+      - DB_SYNCHRONIZE=true
       - REDIS_URL=redis://redis:6379
       - PORT=3001
     depends_on:
-      - mongodb
+      - postgres
       - redis
     networks:
       - cinema-network
@@ -67,6 +87,7 @@ services:
       - /home/node/app/node_modules
 
 volumes:
+  postgres_data:
   mongodb_data:
 
 networks:

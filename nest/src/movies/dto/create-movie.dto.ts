@@ -10,11 +10,11 @@ export class CreateMovieDto {
   description: string;
 
   @IsNumber()
-  duration_min: number;
+  durationMin: number;
 
   @IsString()
-  date_start: string;
+  dateStart: string;
 
   @IsString()
-  date_end: string;
+  dateEnd: string;
 }

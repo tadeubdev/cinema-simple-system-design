@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import type { AllMoviesQueryDto } from './dto/all-movies-query.dto';
 
 @Controller('movies')
 export class MoviesController {
@@ -10,13 +11,7 @@ export class MoviesController {
   @Get('/')
   findAll(
     @Query()
-    query: {
-      page?: number;
-      limit?: number;
-      search?: string;
-      date_start?: string;
-      date_end?: string;
-    },
+    query: AllMoviesQueryDto,
   ) {
     return this.moviesService.findAll(query);
   }

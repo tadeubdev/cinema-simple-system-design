@@ -5,25 +5,25 @@ import { Model } from 'mongoose';
 import { Movie } from './schemas/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import { CacheService } from 'src/infra/cache/cache.service';
+import {
+  AllMoviesQueryDto,
+  buildMoviesCacheKey,
+} from './dto/all-movies-query.dto';
 
 @Injectable()
 export class MoviesService {
   constructor(
     @InjectModel(Movie.name)
     private movieModel: Model<Movie>,
+    private readonly cache: CacheService,
   ) {}
 
-  findAll(query: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    date_start?: string;
-    date_end?: string;
-  }): Promise<Movie[]> {
-    const page = Number(query.page) || 1;
-    let limit = Number(query.limit) || 10;
-    limit = Math.min(limit, 100);
-    const skip = (page - 1) * limit;
+  async findAll(query: AllMoviesQueryDto): Promise<Movie[]> {
+    query.page = Number(query.page) || 1;
+    query.limit = Number(query.limit) || 10;
+    query.limit = Math.min(query.limit, 100);
+    const skip = (query.page - 1) * query.limit;
     const dateFilter: Record<string, Date> = {};
 
     if (query.date_start && !isNaN(Date.parse(query.date_start))) {
@@ -31,6 +31,12 @@ export class MoviesService {
     }
     if (query.date_end && !isNaN(Date.parse(query.date_end))) {
       dateFilter.$lte = new Date(query.date_end);
+    }
+
+    const cacheKey = buildMoviesCacheKey(query);
+    const cached = await this.cache.get(cacheKey);
+    if (cached) {
+      return cached as Movie[];
     }
 
     let stmt = this.movieModel.find();
@@ -47,16 +53,24 @@ export class MoviesService {
         .lte(dateFilter.$lte?.getTime());
     }
 
-    return stmt.sort({ createdAt: -1 }).skip(skip).limit(limit).exec();
+    const result = await stmt
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(query.limit)
+      .exec();
+    await this.cache.set(cacheKey, result);
+    return result;
   }
 
   findOne(id: string): Promise<Movie | null> {
     return this.movieModel.findById(id).exec();
   }
 
-  create(movie: CreateMovieDto): Promise<Movie> {
-    const createdMovie = new this.movieModel(movie);
-    return createdMovie.save();
+  async create(movieDto: CreateMovieDto): Promise<Movie> {
+    const createdMovie = new this.movieModel(movieDto);
+    const movie = await createdMovie.save();
+    await this.cache.delByPrefix('movies:list:');
+    return movie;
   }
 
   async update(id: string, movie: UpdateMovieDto): Promise<Movie | null> {
@@ -64,6 +78,10 @@ export class MoviesService {
     if (!movieExists) {
       return null;
     }
-    return this.movieModel.findByIdAndUpdate(id, movie, { new: true }).exec();
+    const updatedMovie = await this.movieModel
+      .findByIdAndUpdate(id, movie, { new: true })
+      .exec();
+    await this.cache.delByPrefix('movies:list:');
+    return updatedMovie;
   }
 }

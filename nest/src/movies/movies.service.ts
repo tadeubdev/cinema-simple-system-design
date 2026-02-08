@@ -8,7 +8,7 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { CacheService } from 'src/infra/cache/cache.service';
 import {
   AllMoviesQueryDto,
-  buildMoviesCacheKey,
+  buildMoviesListCacheKey,
 } from './dto/all-movies-query.dto';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class MoviesService {
       dateFilter.$lte = new Date(query.date_end);
     }
 
-    const cacheKey = buildMoviesCacheKey(query);
+    const cacheKey = buildMoviesListCacheKey(query);
     const cached = await this.cache.get(cacheKey);
     if (cached) {
       return cached as Movie[];
@@ -62,8 +62,17 @@ export class MoviesService {
     return result;
   }
 
-  findOne(id: string): Promise<Movie | null> {
-    return this.movieModel.findById(id).exec();
+  async findOne(id: string): Promise<Movie | null> {
+    const cacheKey = `movies:${id}`;
+    const cached = await this.cache.get(cacheKey);
+    if (cached) {
+      return cached as Movie;
+    }
+    const movie = await this.movieModel.findById(id).exec();
+    if (movie) {
+      await this.cache.set(cacheKey, movie);
+    }
+    return movie;
   }
 
   async create(movieDto: CreateMovieDto): Promise<Movie> {
